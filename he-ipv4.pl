@@ -15,11 +15,14 @@ our $tunnelID="";
 
 our $debug=4;
 
+our @listURL = (
+		"http://v4.ipv6-test.com/api/myip.php",
+		"http://automation.whatismyip.com/n09230945.asp");
+
 our $tunnelName="he-ipv6";
 
 logger_prefix("he-ipv4:");
 
-our $configFile = "/var/cache/he-ipv4.yml";
 our $curUser = getlogin();
 
 if ($curUser ne "root") {
@@ -28,11 +31,17 @@ if ($curUser ne "root") {
 }
 
 undef $curUser;
+our $configFile = "/var/cache/he-ipv4.yml";
 
 unless (-e $configFile) {
 	slog("\"/var/cache/he-ipv4.yml\" doesn't exist. attempting to create file", 3);
 	ymlCreate();
 }
+
+our($fileURL, $fileIP) = ymlGet();
+our $urlLen = @listURL;
+
+say($urlLen);
 
 sub slog {
 	if ($debug >= 1) {
@@ -65,4 +74,12 @@ sub ymlCreate {
 		slog("crap, something didn't go as planned. file does not appear to have been created. exiting", 1);
 		exit 1;
 	}
+}
+
+sub ymlGet {
+	my $yaml = YAML::Tiny->new;
+	$yaml = YAML::Tiny->read( $configFile );
+	my $url = $yaml->[0]->{url};
+	my $ip = $yaml->[0]->{ipv4};
+	return($url, $ip);
 }
