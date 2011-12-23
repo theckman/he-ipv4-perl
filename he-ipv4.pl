@@ -6,7 +6,7 @@ use strict;
 use Switch;
 
 use YAML::Tiny;
-use HTTP::Request;
+use WWW::Mechanize;
 use Logger::Syslog;
 
 our $userID = "";
@@ -21,16 +21,17 @@ our @listURL = (
 
 our $tunnelName="he-ipv6";
 
+#### CODE ####
+
 logger_prefix("he-ipv4:");
 
 our $curUser = getlogin();
-
 if ($curUser ne "root") {
 	slog("the IPv4 update script must be executed by root, not " . $curUser . ". exiting", 1);
 	exit 1;
 }
-
 undef $curUser;
+
 our $configFile = "/var/cache/he-ipv4.yml";
 
 unless (-e $configFile) {
@@ -40,8 +41,16 @@ unless (-e $configFile) {
 
 our($fileURL, $fileIP) = ymlGet();
 our $urlLen = @listURL;
+our $url, $urlNum;
 
-say($urlLen);
+if ($fileURL + 1 == $urlLen ) {
+	$urlNum = 0;
+	$url = $listUrl[$urlNum];
+} else {
+	$urlNum = $fileURL + 1;
+	$url = $listUrl[$urlNum];
+}
+
 
 sub slog {
 	if ($debug >= 1) {
