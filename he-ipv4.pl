@@ -23,7 +23,7 @@ our $configFile = "/var/cache/he-ipv4.yml";
 our $curUser = getlogin();
 
 if ($curUser ne "root") {
-	slog("the IPv4 update script must be executed by root, not " . $curUser . ". exiting", 1)
+	slog("the IPv4 update script must be executed by root, not " . $curUser . ". exiting", 1);
 	exit 1;
 }
 
