@@ -31,17 +31,7 @@ undef $curUser;
 
 unless (-e $configFile) {
 	slog("\"/var/cache/he-ipv4.yml\" doesn't exist. attempting to create file", 3);
-	slog("woooo", 3);
-	my $yaml = YAML::Tiny->new;
-	$yaml->[0]->{ipv4} = '127.0.0.1';
-	$yaml->[0]->{url} = '0';
-	$yaml->write($configFile);
-	if (-e $configFile) {
-		slog("file created successfully", 3);
-	} else {
-		slog("crap, something didn't go as planned. file does not appear to have been created. exiting", 1);
-		exit 1;
-	}
+	ymlCreate();
 }
 
 sub slog {
@@ -61,5 +51,18 @@ sub slog {
 			else { warning("incorrect value used for message level on subroutine slog call on line " . __LINE__); }
 		}
 		if ($debug == 4) { say($message); }
+	}
+}
+
+sub ymlCreate {
+	my $yaml = YAML::Tiny->new;
+	$yaml->[0]->{ipv4} = '127.0.0.1';
+	$yaml->[0]->{url} = '0';
+	$yaml->write($configFile);
+	if (-e $configFile) {
+		slog("file created successfully", 3);
+	} else {
+		slog("crap, something didn't go as planned. file does not appear to have been created. exiting", 1);
+		exit 1;
 	}
 }
