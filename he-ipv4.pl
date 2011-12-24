@@ -45,16 +45,19 @@ our @listURL = ("http://whatismyip.org/",
 # the name given to your IPv6 tunnel interface
 our $tunnelName = "he-ipv6";
 
-###############
-#### MAIN #####
-###############
+####
+# end configuration section
+# do not edit any further unless you know what you are doing
+# or are atleast brave
 
+# prefix for logging, checks whether debug has been defined above
 logger_prefix("he-ipv4:");
 unless (defined $debug) {
 	our $debug = 3;
 }
 
-my $curUser = getlogin();
+# makes sure that root is running the script
+my $curUser = scalar(getpwuid($<));
 if ($debug == 5) { say("curUser :" . $curUser) }
 if ($curUser ne "root") {
 	slog("the IPv4 update script must be executed by root, not " . $curUser . ". exiting", 1);
