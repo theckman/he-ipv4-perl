@@ -6,6 +6,7 @@ use strict;
 use Switch;
 
 use YAML::Tiny;
+use LWP::Protocol::https;
 use WWW::Mechanize;
 use Logger::Syslog;
 
@@ -13,7 +14,7 @@ our $userID = "";
 our $userPass = "";
 our $tunnelID = "";
 
-our $debug = 4;
+our $debug = 5;
 
 our @listURL = ("http://ifconfig.me/ip",
 	"http://whatismyip.org/",
@@ -28,7 +29,8 @@ our $tunnelName = "he-ipv6";
 
 logger_prefix("he-ipv4:");
 
-our $curUser = getlogin();
+my $curUser = getlogin();
+if ($debug == 5) { say("curUser :" . $curUser) }
 if ($curUser ne "root") {
 	slog("the IPv4 update script must be executed by root, not " . $curUser . ". exiting", 1);
 	exit 1;
@@ -36,22 +38,36 @@ if ($curUser ne "root") {
 undef $curUser;
 
 our $configFile = "/var/cache/he-ipv4.yml";
+our $regexIP='^((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))(?![\\d])';
 
 unless (-e $configFile) {
 	slog("\"/var/cache/he-ipv4.yml\" doesn't exist. attempting to create file", 3);
 	ymlCreate();
 }
 
-our ($fileURL, $fileIP) = ymlGet();
-our $urlLen = @listURL;
-our ($url, $urlNum);
+my ($fileURL, $fileIP) = ymlGet();
+if ($debug == 5) { say("from file: fileURL: " . $fileURL . " | fileIP " . $fileIP); }
 
-if ($fileURL + 1 == $urlLen ) { $urlNum = 0; } else { $urlNum = $fileURL + 1; }
+if ($fileURL !~ /^[0-9]*$/) { $fileURL = 0; }
+if ($fileIP !~ /$regexIP/) { $fileIP = "127.0.0.1" }
+if ($debug == 5) { say("post sanity: fileURL: " . $fileURL . " | fileIP " . $fileIP); }
 
-our ($extIP, $urlUsed) = getExtIP($urlNum, \@listURL);
+my $urlLen = @listURL;
+my $urlNum;
 
-if ($extIP != $fileIP) {
-	
+if ($fileURL + 1 >= $urlLen ) { $urlNum = 0; } else { $urlNum = $fileURL + 1; }
+if ($debug == 5) { say("urlLen: " . $urlLen . " | urlNum: ". $urlNum); }
+
+my ($extIP, $urlUsed) = getExtIP($urlNum, \@listURL);
+if ($debug == 5) { say("extIP: " . $extIP . " | urlUsed: " . $urlUsed); }
+
+if ($extIP ne $fileIP) {
+	updateIP($extIP);
+	ymlWrite($urlUsed, $extIP);
+	slog("the endpoint IPv4 address has been upated to " . $extIP, 3);
+} else { 
+	ymlWrite($urlUsed, $extIP);
+	slog("the external IP address (" . $extIP . ") has not changed", 3);
 }
 
 ###############
@@ -61,6 +77,7 @@ sub slog {
 	if ($debug >= 1) {
 		my $message = shift;
 		my $level = shift;
+		my $lvl = $level;
 		switch ($level) {
 			case 3 {
 				if ($level <= $debug) { info($message); }
@@ -73,11 +90,11 @@ sub slog {
 			}
 			else { warning("incorrect value used for message level on subroutine slog call on line " . __LINE__); }
 		}
-		if ($debug == 4) { 
+		if ($debug >= 4) { 
 			my $prefix;
-			if ($level == 1) { $prefix = "[error] "; }
-			elsif ($level == 2) { $prefix = "[warning] "; }
-			elsif ($level == 3) { $prefix = "[info] "; }
+			if ($lvl == 1) { $prefix = "[error] "; }
+			elsif ($lvl == 2) { $prefix = "[warning] "; }
+			elsif ($lvl == 3) { $prefix = "[info] "; }
 			say($prefix . $message); 
 		}
 	}
@@ -86,7 +103,7 @@ sub slog {
 sub ymlCreate {
 	my $yaml = YAML::Tiny->new;
 	$yaml->[0]->{ipv4} = '127.0.0.1';
-	$yaml->[0]->{url} = '0';
+	$yaml->[0]->{url} = '9001';
 	$yaml->write($configFile);
 	if (-e $configFile) {
 		slog("file created successfully", 3);
@@ -107,14 +124,11 @@ sub ymlGet {
 sub ymlWrite {
 	my ($url, $ipv4) = @_;
 	my $yaml = YAML::Tiny->new;
-	if ( defined $ipv4 ) {
-		$yaml->[0]->{ipv4} = $ipv4;
-		$yaml->[0]->{url} = $url;
-		$yaml->write($configFile);
-	} else {
-		$yaml->[0]->{url} = $url;
-		$yaml->write($conigFile);
-	}
+	$yaml->[0]->{ipv4} = $ipv4;
+	$yaml->[0]->{url} = $url;
+	$yaml->write($configFile);
+	$yaml->[0]->{url} = $url;
+	$yaml->write($configFile);
 }
 
 sub getExtIP {
@@ -123,24 +137,35 @@ sub getExtIP {
 	my $run = 1;
 	my $status;
 	my $mech = WWW::Mechanize->new(
-		agent=>"curl/7.21.0 (i486-pc-linux-gnu) libcurl/7.21.0 OpenSSL/0.9.8o zlib/1.2.3.4 libidn/1.15 libssh2/1.2.6 WWW-Mechanize/1.71 (he-ipv4.pl)",
+		agent=>"curl/7.21.0 (i486-pc-linux-gnu) libcurl/7.21.0 WWW-Mechanize/1.71 (theckman/he-ipv4.pl)",
 		onerror=>sub { slog("something happened when trying to connect to " . $list->[$index], 2); } );
 	
 	while ($run <= 4) {		
 		$mech->get($list->[$index]);
 		$extIP = $mech->content(format=>'text');
 		
-		if ($extIP !~ /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/ && $mech->status() == 200) {
+		if ($extIP !~ /$regexIP/ && $mech->status() == 200) {
 			slog("incorrect value obtained from " . $list->[$index] . ". trying next url", 2);
 			next;
-		} elsif ($run == 4 && $extIP !~ /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/) {
+		} elsif ($run == 4 && $extIP !~ /$regexIP/) {
 			slog("unable to determine external IP address for some reason. do you have an active network connection? exiting", 1);
 			exit 1;
-		} elsif ($extIP =~ /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/ && $mech->status() == 200) {  last; }
+		} elsif ($extIP =~ /$regexIP/ && $mech->status() == 200) {  $extIP = $1; last; }
 		
 	} continue {
 		if ($index + 1 == @$list ) { $index = 0; } else { $index++; };
 		$run++;
 	}
 	return ($extIP, $index);
+}
+
+sub updateIP {
+	my $IPV4 = $_[0];
+	my $url = "https://ipv4.tunnelbroker.net/ipv4_end.php?apikey=" . $userID . "&pass=" . $userPass . "&ip=" . $IPV4 . "&tid=" . $tunnelID;
+	my $mech = WWW::Mechanize->new(
+		agent=>"curl/7.21.0 (i486-pc-linux-gnu) libcurl/7.21.0 WWW-Mechanize/1.71 (theckman/he-ipv4.pl)",
+		onerror=>sub { slog("something happened when trying to connect to http://ipv4.tunnelbroker.net", 2); } );
+	$mech->get($url);	
+	if ($debug == 5) { say("url: " . $url); }
+	if ($debug == 5) { say("output: " . $mech->content(format=>'text')); }
 }
