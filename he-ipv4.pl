@@ -22,9 +22,9 @@ our @listURL = ("http://ifconfig.me/ip",
 
 our $tunnelName = "he-ipv6";
 
-##############
-#### CODE ####
-##############
+###############
+#### MAIN #####
+###############
 
 logger_prefix("he-ipv4:");
 
@@ -50,6 +50,9 @@ if ($fileURL + 1 == $urlLen ) { $urlNum = 0; } else { $urlNum = $fileURL + 1; }
 
 our ($extIP, $urlUsed) = getExtIP($urlNum, \@listURL);
 
+###############
+# SUBROUTINES #
+###############
 sub slog {
 	if ($debug >= 1) {
 		my $message = shift;
