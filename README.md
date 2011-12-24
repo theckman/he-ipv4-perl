@@ -4,7 +4,7 @@ This is a maintenance script to ensure that your Hurricane Electric Tunnel Broke
 
 This script is helpful if you have a dynamic IP address from your ISP.  The script is also logical and does not needlessly update the IPv6 address via HE's API.
 
-This was written and tested with **Debian Squeeze (6.0)**, but it may work on other Debian-derived distributions.  It was also written with the assumption that your tunnel is configured in a similar fashion as the way it is explained in my blog post:
+**Please note**: This was written and tested with Debian Squeeze (6.0), but it may work on other Debian-derived distributions.  It was also written with the assumption that your tunnel is configured in a similar fashion as the way it is explained in my blog post:
 
 - [The Blog of Tim Heckman: Hurricane Electric Tunnel Broker IPv6 Gateway](http://blog.timheckman.net/2011/05/24/he-tunnelbroker-ipv6-gateway/ "http://blog.timheckman.net/2011/05/24/he-tunnelbroker-ipv6-gateway/")
 
