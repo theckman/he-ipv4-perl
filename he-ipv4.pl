@@ -50,6 +50,10 @@ if ($fileURL + 1 == $urlLen ) { $urlNum = 0; } else { $urlNum = $fileURL + 1; }
 
 our ($extIP, $urlUsed) = getExtIP($urlNum, \@listURL);
 
+if ($extIP != $fileIP) {
+	
+}
+
 ###############
 # SUBROUTINES #
 ###############
@@ -94,10 +98,23 @@ sub ymlCreate {
 
 sub ymlGet {
 	my $yaml = YAML::Tiny->new;
-	$yaml = YAML::Tiny->read( $configFile );
+	$yaml = YAML::Tiny->read($configFile);
 	my $url = $yaml->[0]->{url};
 	my $ip = $yaml->[0]->{ipv4};
 	return($url, $ip);
+}
+
+sub ymlWrite {
+	my ($url, $ipv4) = @_;
+	my $yaml = YAML::Tiny->new;
+	if ( defined $ipv4 ) {
+		$yaml->[0]->{ipv4} = $ipv4;
+		$yaml->[0]->{url} = $url;
+		$yaml->write($configFile);
+	} else {
+		$yaml->[0]->{url} = $url;
+		$yaml->write($conigFile);
+	}
 }
 
 sub getExtIP {
