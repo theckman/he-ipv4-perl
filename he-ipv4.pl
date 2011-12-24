@@ -11,17 +11,20 @@ use Logger::Syslog;
 
 our $userID = "";
 our $userPass = "";
-our $tunnelID="";
+our $tunnelID = "";
 
-our $debug=4;
+our $debug = 4;
 
-our @listURL = (
-		"http://v4.ipv6-test.com/api/myip.php",
-		"http://automation.whatismyip.com/n09230945.asp");
+our @listURL = ("http://ifconfig.me/ip",
+	"http://whatismyip.org/",
+	"http://v4.ipv6-test.com/api/myip.php",
+	"http://automation.whatismyip.com/n09230945.asp");
 
-our $tunnelName="he-ipv6";
+our $tunnelName = "he-ipv6";
 
+##############
 #### CODE ####
+##############
 
 logger_prefix("he-ipv4:");
 
@@ -39,18 +42,13 @@ unless (-e $configFile) {
 	ymlCreate();
 }
 
-our($fileURL, $fileIP) = ymlGet();
+our ($fileURL, $fileIP) = ymlGet();
 our $urlLen = @listURL;
-our $url, $urlNum;
+our ($url, $urlNum);
 
-if ($fileURL + 1 == $urlLen ) {
-	$urlNum = 0;
-	$url = $listUrl[$urlNum];
-} else {
-	$urlNum = $fileURL + 1;
-	$url = $listUrl[$urlNum];
-}
+if ($fileURL + 1 == $urlLen ) { $urlNum = 0; } else { $urlNum = $fileURL + 1; }
 
+our ($extIP, $urlUsed) = getExtIP($urlNum, \@listURL);
 
 sub slog {
 	if ($debug >= 1) {
@@ -68,7 +66,13 @@ sub slog {
 			}
 			else { warning("incorrect value used for message level on subroutine slog call on line " . __LINE__); }
 		}
-		if ($debug == 4) { say($message); }
+		if ($debug == 4) { 
+			my $prefix;
+			if ($level == 1) { $prefix = "[error] "; }
+			elsif ($level == 2) { $prefix = "[warning] "; }
+			elsif ($level == 3) { $prefix = "[info] "; }
+			say($prefix . $message); 
+		}
 	}
 }
 
@@ -91,4 +95,32 @@ sub ymlGet {
 	my $url = $yaml->[0]->{url};
 	my $ip = $yaml->[0]->{ipv4};
 	return($url, $ip);
+}
+
+sub getExtIP {
+	my ($index, $list) = @_;
+	my $extIP;
+	my $run = 1;
+	my $status;
+	my $mech = WWW::Mechanize->new(
+		agent=>"curl/7.21.0 (i486-pc-linux-gnu) libcurl/7.21.0 OpenSSL/0.9.8o zlib/1.2.3.4 libidn/1.15 libssh2/1.2.6 WWW-Mechanize/1.71 (he-ipv4.pl)",
+		onerror=>sub { slog("something happened when trying to connect to " . $list->[$index], 2); } );
+	
+	while ($run <= 4) {		
+		$mech->get($list->[$index]);
+		$extIP = $mech->content(format=>'text');
+		
+		if ($extIP !~ /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/ && $mech->status() == 200) {
+			slog("incorrect value obtained from " . $list->[$index] . ". trying next url", 2);
+			next;
+		} elsif ($run == 4 && $extIP !~ /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/) {
+			slog("unable to determine external IP address for some reason. do you have an active network connection? exiting", 1);
+			exit 1;
+		} elsif ($extIP =~ /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/ && $mech->status() == 200) {  last; }
+		
+	} continue {
+		if ($index + 1 == @$list ) { $index = 0; } else { $index++; };
+		$run++;
+	}
+	return ($extIP, $index);
 }
