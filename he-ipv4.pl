@@ -16,8 +16,8 @@ our $tunnelID = "";
 
 our $debug = 5;
 
-our @listURL = ("http://ifconfig.me/ip",
-	"http://whatismyip.org/",
+our @listURL = ("http://whatismyip.org/",
+	"http://ifconfig.me/ip",
 	"http://v4.ipv6-test.com/api/myip.php",
 	"http://automation.whatismyip.com/n09230945.asp");
 
@@ -62,12 +62,22 @@ my ($extIP, $urlUsed) = getExtIP($urlNum, \@listURL);
 if ($debug == 5) { say("extIP: " . $extIP . " | urlUsed: " . $urlUsed); }
 
 if ($extIP ne $fileIP) {
-	updateIP($extIP);
-	ymlWrite($urlUsed, $extIP);
-	slog("the endpoint IPv4 address has been upated to " . $extIP, 3);
+	my $update = updateIP($extIP);
+	if ($update == 0) {
+		ymlWrite($urlUsed, $extIP);
+		slog("the endpoint IPv4 address has been upated to " . $extIP, 3);
+		my $restart = restartTunnel();
+		if ($restart != 0) {
+			exit 1;
+		} else { exit; }
+	} else { 
+		ymlWrite($urlUsed, $fileIP);
+		exit 1; 
+	}
 } else { 
 	ymlWrite($urlUsed, $extIP);
 	slog("the external IP address (" . $extIP . ") has not changed", 3);
+	exit -1;
 }
 
 ###############
@@ -164,8 +174,40 @@ sub updateIP {
 	my $url = "https://ipv4.tunnelbroker.net/ipv4_end.php?apikey=" . $userID . "&pass=" . $userPass . "&ip=" . $IPV4 . "&tid=" . $tunnelID;
 	my $mech = WWW::Mechanize->new(
 		agent=>"curl/7.21.0 (i486-pc-linux-gnu) libcurl/7.21.0 WWW-Mechanize/1.71 (theckman/he-ipv4.pl)",
-		onerror=>sub { slog("something happened when trying to connect to http://ipv4.tunnelbroker.net", 2); } );
+		onerror=>sub { slog("something happened when trying to connect to http://ipv4.tunnelbroker.net. unable to update IP", 1); } );
 	$mech->get($url);	
 	if ($debug == 5) { say("url: " . $url); }
 	if ($debug == 5) { say("output: " . $mech->content(format=>'text')); }
+	if ($mech->status() != 200 ) {
+		return 1;
+	} else { return 0; }
+}
+
+sub restartTunnel {
+	slog("killing " . $tunnelName . " interface for ten seconds", 2);
+		system("/sbin/ifdown " . $tunnelName);
+	if ($? != 0) {
+		slog("unusual exit code detected when killing interface. issuing command again and continuing", 2);
+		system("/sbin/ifdown " . $tunnelName);
+	}
+	sleep 10;
+	
+	system("/sbin/ifup " . $tunnelName);
+	my $tunnelUp = $?;
+	if ($tunnelUp != 0) {
+		slog("unusual exit code detected when bringing interface. issuing command again and continuing", 2);
+		system("/sbin/ifup " . $tunnelName);
+	}
+	sleep 2;
+	system("/etc/init.d/radvd restart");
+	my $radvdUp = $?;
+	if ($radvdUp != 0) {
+		slog("unusual exit code detected when restarting radvd. issuing command again and exiting. IPv6 networking may be interrupted", 1);
+		system("/etc/init.d/radvd restart");
+	}
+	
+	if (($tunnelUp && $radvdUp) == 0) {
+		slog($tunnelName . " and RAdvD have been restarted", 3);
+		return 0;
+	} else { slog("something when wrong when bringing networking back up. connectivity may be interrupted", 2); return 1; }
 }
