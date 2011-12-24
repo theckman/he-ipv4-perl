@@ -27,8 +27,10 @@ At this point you only need to download the script and schedule it to run with c
 1. Download the script and save it to /usr/local/sbin/he-ipv4.pl using either curl or wget:
  * ```curl -o /usr/local/sbin/he-ipv4.pl "https://raw.github.com/theckman/he-ipv4-perl/master/he-ipv4.pl"```
  * ```wget -O /usr/local/sbin/he-ipv4.pl "https://raw.github.com/theckman/he-ipv4-perl/master/he-ipv4.pl"```
-2. Edit the file using your preferred text editor.  Make sure all configuration items are set properly.
-3. Edit the root user's crontab (```crontab -e```) to run this script post reboots and every 15 minutes:
+2. Make the file executable:
+ * ```chmod +x /usr/local/sbin/he-ipv4.pl```
+3. Edit the file using your preferred text editor.  Make sure all configuration items are set properly.
+4. Edit the root user's crontab (```crontab -e```) to run this script post reboots and every 15 minutes:
 
 > ```@reboot /usr/sbin/he-ipv4.pl >/dev/null 2>&1```
 > 
