@@ -52,9 +52,7 @@ our @listURL = ("http://whatismyip.org/",
 
 # prefix for logging, checks whether debug has been defined above
 logger_prefix("he-ipv4:");
-unless (defined $debug) {
-	our $debug = 3;
-}
+our $debug = 3 unless defined $debug;
 
 # makes sure that root is running the script
 my $curUser = scalar(getpwuid($<));
@@ -93,7 +91,7 @@ if ($debug == 5) { say("urlLen: " . $urlLen . " | urlNum: ". $urlNum); }
 
 # gets external IP and which URL index was used
 # assuming $fileURL is bad just in case there was an error with a URL
-my ($extIP, $urlUsed) = getExtIP($urlNum, \@listURL);
+my ($extIP, $urlUsed) = getExtIP($urlNum, \@listURL, $urlLen);
 if ($debug == 5) { say("extIP: " . $extIP . " | urlUsed: " . $urlUsed); }
 
 # checks to see if the external IP has changed and processes accordingly
@@ -191,7 +189,7 @@ sub ymlWrite {
 
 # gets the external IP address using one of the URLs from @lishURL
 sub getExtIP {
-	my ($index, $list) = @_;
+	my ($index, $list, $listLen) = @_;
 	my $extIP;
 	my $run = 1;
 	
@@ -201,7 +199,7 @@ sub getExtIP {
 		onerror=>sub { slog("something happened when trying to connect to " . $list->[$index], 2); } );
 	
 	# loop will run as many times as there are values in the URL list.
-	while ($run <= $listURL) {
+	while ($run <= $listLen) {
 		# gets the URL and throws the content in to $extIP		
 		$mech->get($list->[$index]);
 		$extIP = $mech->content(format=>'text');
@@ -211,7 +209,7 @@ sub getExtIP {
 		if ($extIP !~ /$regexIP/ && $mech->status() == 200) {
 			slog("incorrect value obtained from " . $list->[$index] . ". trying next url", 2);
 			next;
-		} elsif ($run == $listURL && $extIP !~ /$regexIP/) {
+		} elsif ($run == $listLen && $extIP !~ /$regexIP/) {
 			slog("unable to determine external IP address for some reason. do you have an active network connection? exiting", 1);
 			exit 1;
 		} elsif ($extIP =~ /$regexIP/ && $mech->status() == 200) {  $extIP = $1; last; }
