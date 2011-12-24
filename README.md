@@ -18,7 +18,9 @@ To get this script up and running you will need to install some modules from the
 * [WWW::Mechanize](http://search.cpan.org/~jesse/WWW-Mechanize-1.71/lib/WWW/Mechanize.pm "http://search.cpan.org/~jesse/WWW-Mechanize-1.71/lib/WWW/Mechanize.pm")
 * [Logger::Syslog](http://search.cpan.org/~sukria/Logger-Syslog-1.1/lib/Logger/Syslog.pm "http://search.cpan.org/~sukria/Logger-Syslog-1.1/lib/Logger/Syslog.pm")
 
-If you have [App::cpanminus (cpanm)](http://search.cpan.org/~miyagawa/App-cpanminus-1.5007/lib/App/cpanminus.pm "http://search.cpan.org/~miyagawa/App-cpanminus-1.5007/lib/App/cpanminus.pm") installed you can install the needed modules with this command: ```cpanm YAML::Tiny LWP::Protocol::https WWW::Mechanize Logger::Syslog```
+If you have [App::cpanminus (cpanm)](http://search.cpan.org/~miyagawa/App-cpanminus-1.5007/lib/App/cpanminus.pm "http://search.cpan.org/~miyagawa/App-cpanminus-1.5007/lib/App/cpanminus.pm") installed you can install the needed modules with this command: 
+
+```cpanm YAML::Tiny LWP::Protocol::https WWW::Mechanize Logger::Syslog```
 
 At this point you only need to download the script and schedule it to run with cron.
 
