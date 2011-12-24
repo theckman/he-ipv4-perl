@@ -34,6 +34,9 @@ our $tunnelID = "";
 # 5 - printing of additional information
 # our $debug = 3;
 
+# the name given to your IPv6 tunnel interface
+our $tunnelName = "he-ipv6";
+
 # list of URLs to obtain IP from
 # feel free to add/remove at your leisure.
 # site must output IP only in plain text
@@ -41,9 +44,6 @@ our @listURL = ("http://whatismyip.org/",
 	"http://ifconfig.me/ip",
 	"http://v4.ipv6-test.com/api/myip.php",
 	"http://automation.whatismyip.com/n09230945.asp");
-
-# the name given to your IPv6 tunnel interface
-our $tunnelName = "he-ipv6";
 
 ####
 # end configuration section
