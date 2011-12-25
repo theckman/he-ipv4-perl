@@ -41,7 +41,7 @@ $tunnelName = "he-ipv6";
 # list of URLs to obtain IP from
 # feel free to add/remove at your leisure.
 # site must output IP only in plain text
-@listURL = ("http://whatismyip.org/",
+ @listURL = ("http://whatismyip.org/",
 	"http://ifconfig.me/ip",
 	"http://v4.ipv6-test.com/api/myip.php",
 	"http://automation.whatismyip.com/n09230945.asp");
@@ -118,7 +118,7 @@ if ($extIP ne $fileIP) {
 	# no update needed write URL used and original IP.  exit -1 to indicate nothing done, but no failure
 	ymlWrite($urlUsed, $fileIP);
 	slog("the external IP address (" . $extIP . ") has not changed", 3);
-	exit -1;
+	exit;
 }
 
 ####
