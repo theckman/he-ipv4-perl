@@ -20,7 +20,7 @@ To get this script up and running you will need to install some modules from the
 
 If you have [App::cpanminus (cpanm)](http://search.cpan.org/~miyagawa/App-cpanminus-1.5007/lib/App/cpanminus.pm "http://search.cpan.org/~miyagawa/App-cpanminus-1.5007/lib/App/cpanminus.pm") installed you can install the needed modules with this command: 
 
-```cpanm YAML::Tiny LWP::Protocol::https WWW::Mechanize Logger::Syslog```
+```cpanm Logger::Syslog YAML::Tiny LWP::Protocol::https WWW::Mechanize```
 
 At this point you only need to download the script and schedule it to run with cron.
 
