@@ -41,10 +41,12 @@ $tunnelName = "he-ipv6";
 # list of URLs to obtain IP from
 # feel free to add/remove at your leisure.
 # site must output IP only in plain text
- @listURL = ("http://whatismyip.org/",
-	"http://ifconfig.me/ip",
+@listURL = (	
 	"http://v4.ipv6-test.com/api/myip.php",
-	"http://automation.whatismyip.com/n09230945.asp");
+	"http://whatismyip.org/",
+	"http://ifconfig.me/ip",
+	"http://automation.whatismyip.com/n09230945.asp"
+);
 
 ####
 # end configuration section
