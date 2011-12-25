@@ -6,10 +6,10 @@ use strict;
 use Switch;
 our ($userID, $userPass, $tunnelID, $debug, $tunnelName, @listURL);
 
+use Logger::Syslog;
 use YAML::Tiny;
 use LWP::Protocol::https;
 use WWW::Mechanize;
-use Logger::Syslog;
 
 ####
 # configuration section

@@ -13,10 +13,10 @@ Set up
 
 To get this script up and running you will need to install some modules from the [Comprehensive Perl Archive Network (CPAN)](http://www.cpan.org/ "http://www.cpan.org/"):
 
+* [Logger::Syslog](http://search.cpan.org/~sukria/Logger-Syslog-1.1/lib/Logger/Syslog.pm "http://search.cpan.org/~sukria/Logger-Syslog-1.1/lib/Logger/Syslog.pm")
 * [YAML::Tiny](http://search.cpan.org/~adamk/YAML-Tiny-1.50/lib/YAML/Tiny.pm "http://search.cpan.org/~adamk/YAML-Tiny-1.50/lib/YAML/Tiny.pm")
 * [LWP::Protocol::https](http://search.cpan.org/~gaas/LWP-Protocol-https-6.02/lib/LWP/Protocol/https.pm "http://search.cpan.org/~gaas/LWP-Protocol-https-6.02/lib/LWP/Protocol/https.pm")
 * [WWW::Mechanize](http://search.cpan.org/~jesse/WWW-Mechanize-1.71/lib/WWW/Mechanize.pm "http://search.cpan.org/~jesse/WWW-Mechanize-1.71/lib/WWW/Mechanize.pm")
-* [Logger::Syslog](http://search.cpan.org/~sukria/Logger-Syslog-1.1/lib/Logger/Syslog.pm "http://search.cpan.org/~sukria/Logger-Syslog-1.1/lib/Logger/Syslog.pm")
 
 If you have [App::cpanminus (cpanm)](http://search.cpan.org/~miyagawa/App-cpanminus-1.5007/lib/App/cpanminus.pm "http://search.cpan.org/~miyagawa/App-cpanminus-1.5007/lib/App/cpanminus.pm") installed you can install the needed modules with this command: 
 
