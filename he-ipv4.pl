@@ -198,7 +198,7 @@ sub getExtIP {
 	
 	# creates new mechanize for pulling the data. sets custom user agent to pretend to be curl and catches errors
 	my $mech = WWW::Mechanize->new(
-		agent=>"curl/7.21.0 (i486-pc-linux-gnu) libcurl/7.21.0 WWW-Mechanize/1.71 (theckman/he-ipv4.pl)",
+		agent=>"curl/7.21.0 (i486-pc-linux-gnu) libcurl/7.21.0 WWW-Mechanize/$WWW::Mechanize::VERSION (theckman/he-ipv4.pl)",
 		onerror=>sub { slog("something happened when trying to connect to " . $list->[$index], 2); } );
 	
 	# loop will run as many times as there are values in the URL list.
@@ -232,7 +232,7 @@ sub updateIP {
 	
 	# creates mechanize for pushing with same UA and has an error catch. then calls the URL to set the IP
 	my $mech = WWW::Mechanize->new(
-		agent=>"curl/7.21.0 (i486-pc-linux-gnu) libcurl/7.21.0 WWW-Mechanize/1.71 (theckman/he-ipv4.pl)",
+		agent=>"curl/7.21.0 (i486-pc-linux-gnu) libcurl/7.21.0 WWW::Mechanize/$WWW::Mechanize::VERSION (theckman/he-ipv4.pl)",
 		onerror=>sub { slog("something happened when trying to connect to http://ipv4.tunnelbroker.net. unable to update IP", 1); } );
 	$mech->get($url);	
 	if ($debug == 5) { say("url: " . $url); }
