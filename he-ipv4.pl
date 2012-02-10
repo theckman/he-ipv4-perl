@@ -41,7 +41,7 @@ $tunnelName = "he-ipv6";
 # list of URLs to obtain IP from
 # feel free to add/remove at your leisure.
 # site must output IP only in plain text
-@listURL = (	
+@listURL = (
 	"http://v4.ipv6-test.com/api/myip.php",
 	"http://whatismyip.org/",
 	"http://ifconfig.me/ip",
@@ -106,17 +106,17 @@ if ($extIP ne $fileIP) {
 		ymlWrite($urlUsed, $extIP);
 		slog("the endpoint IPv4 address has been upated to " . $extIP, 3);
 		my $restart = restartTunnel();
-		
+
 		# if tunnel restart has non-0 return, exit with failure else exit with success
 		if ($restart != 0) {
 			exit 1;
 		} else { exit; }
-	} else { 
+	} else {
 		# if update failed, update URL used but keep old IP (want it to update on next go)
 		ymlWrite($urlUsed, $fileIP);
-		exit 1; 
+		exit 1;
 	}
-} else { 
+} else {
 	# no update needed write URL used and original IP.  exit -1 to indicate nothing done, but no failure
 	ymlWrite($urlUsed, $fileIP);
 	slog("the external IP address (" . $extIP . ") has not changed", 3);
@@ -146,14 +146,14 @@ sub slog {
 			}
 			else { warning("incorrect value used for message level on subroutine slog call on line " . __LINE__); }
 		}
-		
+
 		# if print debug mode is set, print as well add some meaningful prefixes
-		if ($debug >= 4) { 
+		if ($debug >= 4) {
 			my $prefix;
 			if ($level == 1) { $prefix = "[error] "; }
 			elsif ($level == 2) { $prefix = "[warning] "; }
 			elsif ($level == 3) { $prefix = "[info] "; }
-			say($prefix . $message); 
+			say($prefix . $message);
 		}
 	}
 }
@@ -195,18 +195,18 @@ sub getExtIP {
 	my ($index, $list, $listLen) = @_;
 	my $extIP;
 	my $run = 1;
-	
+
 	# creates new mechanize for pulling the data. sets custom user agent to pretend to be curl and catches errors
 	my $mech = WWW::Mechanize->new(
 		agent=>"curl/7.21.0 (i486-pc-linux-gnu) libcurl/7.21.0 WWW-Mechanize/$WWW::Mechanize::VERSION (theckman/he-ipv4.pl)",
 		onerror=>sub { slog("something happened when trying to connect to " . $list->[$index], 2); } );
-	
+
 	# loop will run as many times as there are values in the URL list.
 	while ($run <= $listLen) {
-		# gets the URL and throws the content in to $extIP		
+		# gets the URL and throws the content in to $extIP
 		$mech->get($list->[$index]);
 		$extIP = $mech->content(format=>'text');
-		
+
 		# the content is matched against regext to make sure we got an IP.  Also makes sure HTTP status 200
 		# if not try again with different URL until loop ends. if no URL is obtained exit 1
 		if ($extIP !~ /$regexIP/ && $mech->status() == 200) {
@@ -216,7 +216,7 @@ sub getExtIP {
 			slog("unable to determine external IP address for some reason. do you have an active network connection? exiting", 1);
 			exit 1;
 		} elsif ($extIP =~ /$regexIP/ && $mech->status() == 200) {  $extIP = $1; last; }
-		
+
 	} continue {
 		if ($index + 1 == @$list ) { $index = 0; } else { $index++; };
 		$run++;
@@ -229,15 +229,15 @@ sub updateIP {
 	# pulls IP and generates URL
 	my $IPV4 = $_[0];
 	my $url = "https://ipv4.tunnelbroker.net/ipv4_end.php?apikey=" . $userID . "&pass=" . $userPass . "&ip=" . $IPV4 . "&tid=" . $tunnelID;
-	
+
 	# creates mechanize for pushing with same UA and has an error catch. then calls the URL to set the IP
 	my $mech = WWW::Mechanize->new(
 		agent=>"curl/7.21.0 (i486-pc-linux-gnu) libcurl/7.21.0 WWW::Mechanize/$WWW::Mechanize::VERSION (theckman/he-ipv4.pl)",
 		onerror=>sub { slog("something happened when trying to connect to http://ipv4.tunnelbroker.net. unable to update IP", 1); } );
-	$mech->get($url);	
+	$mech->get($url);
 	if ($debug == 5) { say("url: " . $url); }
 	if ($debug == 5) { say("output: " . $mech->content(format=>'text')); }
-	
+
 	# kind of risky I suppose assuming HTTP 200 = success
 	if ($mech->status() != 200 ) {
 		return 1;
@@ -249,7 +249,7 @@ sub updateIP {
 # it assumes ifup and ifdown are available also that radvd is installed with proper init script
 sub restartTunnel {
 	slog("killing " . $tunnelName . " interface for ten seconds", 2);
-	
+
 	# brings down interface checks for failure and handles accordingly
 	system("/sbin/ifdown " . $tunnelName);
 	if ($? != 0) {
@@ -257,7 +257,7 @@ sub restartTunnel {
 		system("/sbin/ifdown " . $tunnelName);
 	}
 	sleep 10;
-	
+
 	# bring the interface back up. save exit status to variable and check and handle accordingly
 	system("/sbin/ifup " . $tunnelName);
 	my $tunnelUp = $?;
@@ -267,7 +267,7 @@ sub restartTunnel {
 		$tunnelUp = $?;
 	}
 	sleep 2;
-	
+
 	# restart rdvd, save exit status, check and handle accordingly
 	system("/etc/init.d/radvd restart");
 	my $radvdUp = $?;
@@ -276,7 +276,7 @@ sub restartTunnel {
 		system("/etc/init.d/radvd restart");
 		$radvdUp = $?;
 	}
-	
+
 	# if one of the ifup or radvds failed.  if not, return 0 happy message
 	# if something weird happened note it and return error
 	if (($tunnelUp && $radvdUp) == 0) {
