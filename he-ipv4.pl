@@ -72,7 +72,7 @@ our $regexIP='^((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0
 
 # checks if config file exists and calls create job if not
 unless (-e $configFile) {
-	slog("\"/var/cache/he-ipv4.yml\" doesn't exist. attempting to create file", 3);
+	slog("\"" . $configFile . "\" doesn't exist. attempting to create file", 3);
 	ymlCreate();
 }
 
