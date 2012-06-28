@@ -78,7 +78,7 @@ $debug = 3 unless defined $debug;
 
 # makes sure that root is running the script
 my $curUser = scalar(getpwuid($<));
-if ($debug == 5) { say("curUser :" . $curUser) }
+say("curUser :" . $curUser) if ($debug == 5);
 if ($curUser ne "root") {
 	slog("the IPv4 update script must be executed by root, not " . $curUser . ". exiting", 1);
 	exit 1;
@@ -97,24 +97,24 @@ unless (-e $configFile) {
 
 # get the last use URL index and last externalIP from YAML file
 my ($fileURL, $fileIP) = ymlGet();
-if ($debug == 5) { say("from file: fileURL: " . $fileURL . " | fileIP " . $fileIP); }
+say("from file: fileURL: " . $fileURL . " | fileIP " . $fileIP) if ($debug == 5);
 
 # check sanity of data and give it some default if the data is out of whack
-if ($fileURL !~ /^[0-9]*$/) { $fileURL = 9001; }
-if ($fileIP !~ /$regexIP/) { $fileIP = "127.0.0.1" }
-if ($debug == 5) { say("post sanity: fileURL: " . $fileURL . " | fileIP " . $fileIP); }
+$fileURL = 9001 if ($fileURL !~ m/^[0-9]*$/);
+$fileIP = "127.0.0.1" if ($fileIP !~ m/$regexIP/);
+say("post sanity: fileURL: " . $fileURL . " | fileIP " . $fileIP) if ($debug == 5);
 
 my $urlLen = @listURL;
 my $urlNum;
 
 # this next line simply gets the next index for the URL list
 if ($fileURL + 1 >= $urlLen ) { $urlNum = 0; } else { $urlNum = $fileURL + 1; }
-if ($debug == 5) { say("urlLen: " . $urlLen . " | urlNum: ". $urlNum); }
+say("urlLen: " . $urlLen . " | urlNum: ". $urlNum) if ($debug == 5);
 
 # gets external IP and which URL index was used
 # assuming $fileURL is bad just in case there was an error with a URL
 my ($extIP, $urlUsed) = getExtIP($urlNum, \@listURL, $urlLen);
-if ($debug == 5) { say("extIP: " . $extIP . " | urlUsed: " . $urlUsed); }
+say("extIP: " . $extIP . " | urlUsed: " . $urlUsed) if ($debug == 5);
 
 # checks to see if the external IP has changed and processes accordingly
 if ($extIP ne $fileIP) {
@@ -228,13 +228,13 @@ sub getExtIP {
 
 		# the content is matched against regext to make sure we got an IP.  Also makes sure HTTP status 200
 		# if not try again with different URL until loop ends. if no URL is obtained exit 1
-		if ($extIP !~ /$regexIP/ && $mech->status() == 200) {
+		if ($extIP !~ m/$regexIP/ && $mech->status() == 200) {
 			slog("incorrect value obtained from " . $list->[$index] . ". trying next url", 2);
 			next;
-		} elsif ($run == $listLen && $extIP !~ /$regexIP/) {
+		} elsif ($run == $listLen && $extIP !~ m/$regexIP/) {
 			slog("unable to determine external IP address for some reason. do you have an active network connection? exiting", 1);
 			exit 1;
-		} elsif ($extIP =~ /$regexIP/ && $mech->status() == 200) {  $extIP = $1; last; }
+		} elsif ($extIP =~ m/$regexIP/ && $mech->status() == 200) {  $extIP = $1; last; }
 
 	} continue {
 		if ($index + 1 == @$list ) { $index = 0; } else { $index++; };
@@ -254,8 +254,8 @@ sub updateIP {
 		agent=>"curl/7.21.0 (i486-pc-linux-gnu) libcurl/7.21.0 WWW::Mechanize/$WWW::Mechanize::VERSION (theckman/he-ipv4.pl)",
 		onerror=>sub { slog("something happened when trying to connect to http://ipv4.tunnelbroker.net. unable to update IP", 1); } );
 	$mech->get($url);
-	if ($debug == 5) { say("url: " . $url); }
-	if ($debug == 5) { say("output: " . $mech->content(format=>'text')); }
+	say("url: " . $url) if ($debug == 5);
+	say("output: " . $mech->content(format=>'text')) if ($debug == 5);
 
 	# kind of risky I suppose assuming HTTP 200 = success
 	if ($mech->status() != 200 ) {
