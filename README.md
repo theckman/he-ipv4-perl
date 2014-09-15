@@ -34,9 +34,9 @@ At this point you only need to download the script and schedule it to run with c
 3. Edit the file using your preferred text editor.  Make sure all configuration items are set properly.
 4. Edit the root user's crontab (```crontab -e```) to run this script post reboots and every 15 minutes:
 
-> ```@reboot /usr/sbin/he-ipv4.pl >/dev/null 2>&1```
+> ```@reboot /usr/local/sbin/he-ipv4.pl >/dev/null 2>&1```
 > 
-> ```*/15 * * * * /usr/sbin/he-ipv4.pl >/dev/null 2>&1```
+> ```*/15 * * * * /usr/local/sbin/he-ipv4.pl >/dev/null 2>&1```
 
 Configuration
 =============
